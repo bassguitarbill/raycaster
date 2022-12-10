@@ -1,4 +1,6 @@
 import { Controls, isControlPressed } from './input.js';
+import { checkerboard, brick, door } from './textures.js';
+
 window.addEventListener("load", () => {
   const canvas = document.createElement('canvas');
   canvas.width = 1200;
@@ -6,6 +8,7 @@ window.addEventListener("load", () => {
   document.body.appendChild(canvas);
 
   const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = false;
 
   const game = new Game(ctx);
   game.start();
@@ -14,7 +17,7 @@ window.addEventListener("load", () => {
 const MAP: Array<number> = [
   1, 1, 1, 1, 1, 1, 1, 1,
   1, 0, 0, 0, 0, 0, 0, 1,
-  1, 0, 1, 0, 0, 0, 0, 1,
+  1, 0, 0, 0, 0, 1, 0, 1,
   1, 0, 0, 0, 0, 0, 0, 1,
   1, 0, 0, 0, 1, 1, 1, 1,
   1, 0, 0, 0, 1, 0, 0, 1,
@@ -134,14 +137,28 @@ class Game {
       this.player.angle -= PLAYER_TURN_SPEED;
       if (this.player.angle < 0) this.player.angle += Math.PI * 2;
     }
+
     const PLAYER_SPEED = 2;
+    const pdx = PLAYER_SPEED * Math.cos(this.player.angle);
+    const xo = pdx > 0 ? 10 : -10;
+    const pdy = PLAYER_SPEED * Math.sin(this.player.angle);
+    const yo = pdy > 0 ? 10 : -10;
+
     if (isControlPressed(Controls.FORWARD)) {
-      this.player.x += PLAYER_SPEED * Math.cos(this.player.angle);
-      this.player.y -= PLAYER_SPEED * Math.sin(this.player.angle);
+      const mx = Math.floor((this.player.x + pdx + xo) / TILE_DRAW_SIZE);
+      const my = Math.floor((this.player.y - pdy - yo) / TILE_DRAW_SIZE);
+      if (MAP[my * 8 + mx] === 0) {
+        this.player.x += pdx;
+        this.player.y -= pdy;
+      }
     }
     if (isControlPressed(Controls.BACK)) {
-      this.player.x -= PLAYER_SPEED * Math.cos(this.player.angle);
-      this.player.y += PLAYER_SPEED * Math.sin(this.player.angle);
+      const mx = Math.floor((this.player.x - pdx - xo) / TILE_DRAW_SIZE);
+      const my = Math.floor((this.player.y + pdy + yo) / TILE_DRAW_SIZE);
+      if (MAP[my * 8 + mx] === 0) {
+        this.player.x -= pdx;
+        this.player.y += pdy;
+      }
     }
   }
 
